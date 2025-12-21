@@ -11,29 +11,39 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Example"
+	name = "AlchIndicator"
 )
 public class AlchIndicatorPlugin extends Plugin
 {
 	@Inject
+	private AlchIndicatorConfig alchIndicatorConfig;
+
+	@Inject
+	private AlchIndicatorOverlay alchIndicatorOverlay;
+
+	@Inject
 	private Client client;
 
 	@Inject
-	private AlchIndicatorConfig config;
+	private OverlayManager overlayManager;
+
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.debug("AlchIndicator started!");
+		return;
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.debug("AlchIndicator stopped!");
+		overlayManager.remove(alchIndicatorOverlay);
+
+		return;
 	}
 
 	@Subscribe
@@ -49,11 +59,13 @@ public class AlchIndicatorPlugin extends Plugin
 				|| (option.equals("Cast") && target.equals("<col=00ff00>Low Level Alchemy</col>"))
 		) {
 			log.debug("Alchemy spell selected!");
+			// Todo: Invoke the logic to render the indicator here.
 		}
-		// The player cancelled the spell.
+		// The player canceled the spell.
 		else if (option.equals("Cancel") && target.equals(""))
 		{
-			log.debug("Spell cancelled.");
+			log.debug("Spell canceled.");
+			overlayManager.remove(alchIndicatorOverlay);
 		}
 
 		return;
