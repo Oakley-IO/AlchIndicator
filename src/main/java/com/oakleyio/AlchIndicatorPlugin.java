@@ -60,6 +60,7 @@ public class AlchIndicatorPlugin extends Plugin
 		) {
 			log.debug("Alchemy spell selected!");
 			// Todo: Invoke the logic to render the indicator here.
+			overlayManager.add(alchIndicatorOverlay);
 		}
 		// The player canceled the spell.
 		else if (option.equals("Cancel") && target.equals(""))
