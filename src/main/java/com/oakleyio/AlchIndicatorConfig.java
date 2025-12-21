@@ -1,18 +1,21 @@
 package com.oakleyio;
 
+import java.awt.Color
+
+import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-// TODO: Enum is a simple idea, maybe other plugins do different color picking methods.
-// What does Agility plugin do?
-enum IndicatorColor
-{
-	RED,
-	GREEN,
-	YELLOW,
-	BLUE
-}
+//// TODO: Enum is a simple idea, maybe other plugins do different color picking methods.
+//// What does Agility plugin do?
+//enum IndicatorColor
+//{
+//	RED,
+//	GREEN,
+//	YELLOW,
+//	BLUE
+//}
 
 @ConfigGroup("example")
 public interface AlchIndicatorConfig extends Config
@@ -28,8 +31,8 @@ public interface AlchIndicatorConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "flashingIndicatorInterval",
-			name = "Flashing Indicator Interval",
+			keyName = "Interval",
+			name = "Interval",
 			description = "This setting customizes how often the Alch Indicator will flash when an alch spell is chosen."
 	)
 	default double flashingIndicatorInterval()
@@ -37,14 +40,15 @@ public interface AlchIndicatorConfig extends Config
 		return 1;
 	}
 
+	@Alpha
 	@ConfigItem(
 			keyName = "indicatorColor",
 			name = "Indicator Color",
 			description = "The color of the overlay. The overlay is created after selecting an alch spell."
 	)
-	default IndicatorColor indicatorColor()
+	default Color indicatorColor()
 	{
-		return IndicatorColor.GREEN;
+		return Color.GREEN;
 	}
 
 	@ConfigItem(
