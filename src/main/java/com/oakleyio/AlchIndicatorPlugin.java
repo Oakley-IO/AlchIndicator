@@ -27,13 +27,13 @@ public class AlchIndicatorPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.debug("Example started!");
+		log.debug("AlchIndicator started!");
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.debug("Example stopped!");
+		log.debug("AlchIndicator stopped!");
 	}
 
 	@Subscribe
