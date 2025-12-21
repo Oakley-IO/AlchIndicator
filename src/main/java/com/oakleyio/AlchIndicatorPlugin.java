@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -37,12 +37,26 @@ public class AlchIndicatorPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	public void onMenuOptionClicked(MenuOptionClicked menuOptionClicked)
 	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
-		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.tooltip(), null);
+		// log.debug("Menu Entry: {}", menuOptionClicked.getMenuEntry());
+		String option = menuOptionClicked.getMenuEntry().getOption();
+		String target = menuOptionClicked.getMenuEntry().getTarget();
+
+		// The player selected one of the alchemy spells to cast.
+		if (
+				(option.equals("Cast") && target.equals("<col=00ff00>High Level Alchemy</col>"))
+				|| (option.equals("Cast") && target.equals("<col=00ff00>Low Level Alchemy</col>"))
+		) {
+			log.debug("Alchemy spell selected!");
 		}
+		// The player cancelled the spell.
+		else if (option.equals("Cancel") && target.equals(""))
+		{
+			log.debug("Spell cancelled.");
+		}
+
+		return;
 	}
 
 	@Provides
