@@ -39,7 +39,7 @@ public interface AlchIndicatorConfig extends Config
 	)
 	default Color indicatorColor()
 	{
-		return Color.GREEN;
+		return new Color(75, 0, 255, 25);
 	}
 
 	@ConfigItem(
