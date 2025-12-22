@@ -8,7 +8,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 
-@ConfigGroup("example")
+@ConfigGroup("Alch Indicator")
 public interface AlchIndicatorConfig extends Config
 {
 	@ConfigItem(

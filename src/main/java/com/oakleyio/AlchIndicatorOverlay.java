@@ -10,13 +10,14 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.api.gameval.InterfaceID;
 
 
 @Slf4j
 public class AlchIndicatorOverlay extends Overlay {
 
-    private Client client;
-    private AlchIndicatorPlugin alchIndicatorPlugin;
+    private final Client client;
+    private final AlchIndicatorPlugin alchIndicatorPlugin;
 
     @Inject
     private AlchIndicatorOverlay(Client client, AlchIndicatorPlugin alchIndicatorPlugin)
@@ -29,7 +30,7 @@ public class AlchIndicatorOverlay extends Overlay {
         setPosition(OverlayPosition.DYNAMIC);
 
         // Sets the indicator to be above the inventory.
-        setLayer(OverlayLayer.ABOVE_SCENE);
+        setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
     @Override
@@ -37,13 +38,14 @@ public class AlchIndicatorOverlay extends Overlay {
     {
         // Find the "side panel" (inventory) widget. If found, draw an indicator
         //  above it.
-        Widget currWidget = find_widget();
-        if (currWidget != null)
+        Widget anchorWidget = findWidget();
+        if (anchorWidget != null)
         {
-            int xCord = currWidget.getCanvasLocation().getX();
-            int yCord = currWidget.getCanvasLocation().getY();
-            int widgetHeight = currWidget.getHeight();
-            int widgetWidth = currWidget.getWidth();
+            // x and y are a point top left of the widget
+            int xCord = anchorWidget.getCanvasLocation().getX();
+            int yCord = anchorWidget.getCanvasLocation().getY();
+            int widgetHeight = anchorWidget.getHeight();
+            int widgetWidth = anchorWidget.getWidth();
 
             // Todo: Make this dynamic.
             graphics.setColor(new Color(255, 255, 0, 75));
@@ -54,9 +56,38 @@ public class AlchIndicatorOverlay extends Overlay {
         return null;
     }
 
-    private Widget find_widget()
+    private Widget findWidget()
     {
-        // Todo: Write the API to find the inventory widget.
-        return null;
+        // todo rewrite these notes, but they are good to know.
+        // using widget inspector find the name of the widget and search for the map in:
+        // runelite\runelite-api\src\main\java\net\runelite\api\gameval\InterfaceID.java
+        // list all possible interface ID depending on user's display mode
+        // check if the widget id exists with runelite atm
+        // return the hit, else return null
+
+        // possible anchors to attach the overlay to
+        int[] possibleAnchors =
+        {
+            // array of widgets that are assigned to an int InterfaceID
+            InterfaceID.ToplevelOsrsStretch.SIDE_CONTAINER, 	// Resizable - Classic layout
+            InterfaceID.ToplevelPreEoc.SIDE_BACKGROUND,			// Resizable - Modern layout
+            InterfaceID.Toplevel.SIDE_PANELS					// Fixed - Classic layout
+        };
+
+        Widget foundAnchor = null;
+
+        for (int widgetInterfaceID : possibleAnchors)
+        {
+            Widget checkWidget = client.getWidget(widgetInterfaceID);
+
+            // if the widget exists at the moment
+            if (checkWidget != null && !checkWidget.isHidden())
+            {
+                foundAnchor = checkWidget;
+                break;
+            }
+        }
+
+        return foundAnchor;
     }
 }
