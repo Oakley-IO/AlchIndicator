@@ -16,7 +16,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "AlchIndicator"
+	name = "Alch Indicator"
 )
 public class AlchIndicatorPlugin extends Plugin
 {

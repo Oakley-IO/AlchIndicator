@@ -17,12 +17,14 @@ import net.runelite.api.gameval.InterfaceID;
 public class AlchIndicatorOverlay extends Overlay {
 
     private final Client client;
+    private final AlchIndicatorConfig alchIndicatorConfig;
     private final AlchIndicatorPlugin alchIndicatorPlugin;
 
     @Inject
-    private AlchIndicatorOverlay(Client client, AlchIndicatorPlugin alchIndicatorPlugin)
+    private AlchIndicatorOverlay(Client client, AlchIndicatorConfig alchIndicatorConfig, AlchIndicatorPlugin alchIndicatorPlugin)
     {
         this.client = client;
+        this.alchIndicatorConfig = alchIndicatorConfig;
         this.alchIndicatorPlugin = alchIndicatorPlugin;
 
         // Allows the indicator to move - not needed technically, since you
@@ -47,8 +49,7 @@ public class AlchIndicatorOverlay extends Overlay {
             int widgetHeight = anchorWidget.getHeight();
             int widgetWidth = anchorWidget.getWidth();
 
-            // Todo: Make this dynamic.
-            graphics.setColor(new Color(255, 255, 0, 75));
+            graphics.setColor(alchIndicatorConfig.indicatorColor());
             graphics.fillRect(xCord, yCord, widgetWidth, widgetHeight);
             graphics.drawRect(xCord, yCord, widgetWidth, widgetHeight);
         }
