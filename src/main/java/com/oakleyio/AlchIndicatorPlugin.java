@@ -50,27 +50,31 @@ public class AlchIndicatorPlugin extends Plugin
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked menuOptionClicked)
 	{
-		// log.debug("Menu Entry: {}", menuOptionClicked.getMenuEntry());
+		log.debug("Menu Entry: {}", menuOptionClicked.getMenuEntry());
 		String option = menuOptionClicked.getMenuEntry().getOption();
 		String target = menuOptionClicked.getMenuEntry().getTarget();
 
 		// The player selected one of the alchemy spells to cast.
 		if (
-				(option.equals("Cast") && target.equals("<col=00ff00>High Level Alchemy</col>"))
-				|| (option.equals("Cast") && target.equals("<col=00ff00>Low Level Alchemy</col>"))
+				option.equals("Cast") && (target.contains("High Level Alchemy") || target.contains("Low Level Alchemy"))
 		) {
-			log.debug("Alchemy spell selected!");
-			// Todo: Invoke the logic to render the indicator here.
-			overlayManager.add(alchIndicatorOverlay);
+			if (target.contains("->"))
+			{
+				log.info("Alchemy spell casted.");
+				overlayManager.remove(alchIndicatorOverlay);
+			}
+			else
+			{
+				log.info("Alchemy spell selected!");
+				overlayManager.add(alchIndicatorOverlay);
+			}
 		}
 		// The player canceled the spell.
-		else if (option.equals("Cancel") && target.equals(""))
+		else if (option.equals("Cancel") && target.isEmpty())
 		{
-			log.debug("Spell canceled.");
+			log.info("Alchemy spell canceled.");
 			overlayManager.remove(alchIndicatorOverlay);
 		}
-
-		return;
 	}
 
 	@Provides
