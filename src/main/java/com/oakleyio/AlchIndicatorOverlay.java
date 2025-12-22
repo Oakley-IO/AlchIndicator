@@ -1,9 +1,12 @@
 package com.oakleyio;
 
+import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
@@ -18,15 +21,16 @@ public class AlchIndicatorOverlay extends Overlay {
 
     private final Client client;
     private final AlchIndicatorPlugin alchIndicatorPlugin;
+    private final AlchIndicatorConfig config;
 
     @Inject
-    private AlchIndicatorOverlay(Client client, AlchIndicatorPlugin alchIndicatorPlugin)
+    private AlchIndicatorOverlay(Client client, AlchIndicatorPlugin alchIndicatorPlugin, AlchIndicatorConfig config)
     {
         this.client = client;
         this.alchIndicatorPlugin = alchIndicatorPlugin;
+        this.config = config;
 
-        // Allows the indicator to move - not needed technically, since you
-        //  can't reposition widgets when casting a spell.
+        // Allows the overlay to follow the anchor point
         setPosition(OverlayPosition.DYNAMIC);
 
         // Sets the indicator to be above the inventory.
@@ -41,16 +45,46 @@ public class AlchIndicatorOverlay extends Overlay {
         Widget anchorWidget = findWidget();
         if (anchorWidget != null)
         {
-            // x and y are a point top left of the widget
-            int xCord = anchorWidget.getCanvasLocation().getX();
-            int yCord = anchorWidget.getCanvasLocation().getY();
-            int widgetHeight = anchorWidget.getHeight();
-            int widgetWidth = anchorWidget.getWidth();
+            // Align the indicator with the inventory widget
+            int xCord = anchorWidget.getCanvasLocation().getX() + config.offsetX();
+            int yCord = anchorWidget.getCanvasLocation().getY() + config.offsetY();
+            int widgetHeight = anchorWidget.getHeight() + config.offsetHeight();
+            int widgetWidth = anchorWidget.getWidth() + config.offsetWidth();
 
-            // Todo: Make this dynamic.
-            graphics.setColor(new Color(255, 255, 0, 75));
+            // Indicator Fill
+            graphics.setColor(config.indicatorColor());
             graphics.fillRect(xCord, yCord, widgetWidth, widgetHeight);
-            graphics.drawRect(xCord, yCord, widgetWidth, widgetHeight);
+
+            int configThickness = config.borderThickness();
+
+            // -1 means OFF (do nothing)
+            if (configThickness >= 0)
+            {
+                Stroke oldStroke = graphics.getStroke();
+                graphics.setStroke(new BasicStroke(configThickness));
+
+                int inset = configThickness / 2;
+
+                graphics.setColor(config.borderColor());
+                graphics.drawRect(
+                        xCord + inset,
+                        yCord + inset,
+                        widgetWidth - 1 - inset * 2,
+                        widgetHeight - 1 - inset * 2
+                );
+
+                // reset the stroke width
+                graphics.setStroke(oldStroke);
+            }
+            // else (-1): border intentionally not drawn
+
+
+            // text warning
+            String text = "Alchemy spell activated!";
+            graphics.setColor(Color.BLACK);
+            graphics.drawString(text, xCord + 1, yCord + 1);
+            graphics.setColor(Color.YELLOW);
+            graphics.drawString(text, xCord, yCord);
         }
 
         return null;
@@ -83,6 +117,8 @@ public class AlchIndicatorOverlay extends Overlay {
             // if the widget exists at the moment
             if (checkWidget != null && !checkWidget.isHidden())
             {
+                //log.info("ALCH DEBUG CHECK WIDGET TYPE: {}", checkWidget.getType());
+                //log.info("ALCH DEBUG CHECK WIDGET: {}", checkWidget);
                 foundAnchor = checkWidget;
                 break;
             }
