@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -45,6 +46,15 @@ public class AlchIndicatorPlugin extends Plugin
 		overlayManager.remove(alchIndicatorOverlay);
 
 		return;
+	}
+
+	@Subscribe
+	private void onGameTick(GameTick gameTick)
+	{
+		// This plugin has an overlay configuration where the indicator will
+		//	flash when an alch spell is active. We track when to flash using
+		//	game ticks.
+		alchIndicatorOverlay.setHasGameTicked(true);
 	}
 
 	@Subscribe

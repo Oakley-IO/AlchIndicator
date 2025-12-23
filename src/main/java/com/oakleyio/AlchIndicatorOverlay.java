@@ -18,7 +18,11 @@ public class AlchIndicatorOverlay extends Overlay {
 
     private final Client client;
     private final AlchIndicatorConfig alchIndicatorConfig;
+    private Color lastIndicatorColor;
     private final AlchIndicatorPlugin alchIndicatorPlugin;
+
+    private boolean hasGameTicked = false;
+    private int gameTicks = 0;
 
     @Inject
     private AlchIndicatorOverlay(Client client, AlchIndicatorConfig alchIndicatorConfig, AlchIndicatorPlugin alchIndicatorPlugin)
@@ -33,25 +37,44 @@ public class AlchIndicatorOverlay extends Overlay {
 
         // Sets the indicator to be above the inventory.
         setLayer(OverlayLayer.ABOVE_WIDGETS);
+
+        this.lastIndicatorColor = null;
     }
 
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        // Find the "side panel" (inventory) widget. If found, draw an indicator
-        //  above it.
-        Widget anchorWidget = findWidget();
-        if (anchorWidget != null)
+        // If flashing is enabled, alternate indicator visibility based on game ticks.
+        if (alchIndicatorConfig.flashingIndicator())
         {
-            // x and y are a point top left of the widget
-            int xCord = anchorWidget.getCanvasLocation().getX();
-            int yCord = anchorWidget.getCanvasLocation().getY();
-            int widgetHeight = anchorWidget.getHeight();
-            int widgetWidth = anchorWidget.getWidth();
+            // Rendering occurs more frequently than game ticks.
+            // Only update flashing state when a new game tick has occurred.
+            if (hasGameTicked)
+            {
+                // Check if the number of game ticks meets the interval threshold
+                //  configured by the player.
+                if (gameTicks >= alchIndicatorConfig.flashingIndicatorInterval())
+                {
+                    // Color value is irrelevant here; opacity controls the visibility.
+                    lastIndicatorColor = new Color(255, 255, 255, 0);
+                    gameTicks = 0;
+                }
+                else
+                {
+                    lastIndicatorColor = alchIndicatorConfig.indicatorColor();
+                    gameTicks++;
+                }
 
-            graphics.setColor(alchIndicatorConfig.indicatorColor());
-            graphics.fillRect(xCord, yCord, widgetWidth, widgetHeight);
-            graphics.drawRect(xCord, yCord, widgetWidth, widgetHeight);
+                // Prevent further flashing updates until the next game tick.
+                hasGameTicked = false;
+            }
+
+          renderIndicator(lastIndicatorColor, graphics);
+        }
+        else
+        {
+            // Flashing is disabled, always render the indicator normally.
+            renderIndicator(alchIndicatorConfig.indicatorColor(), graphics);
         }
 
         return null;
@@ -59,29 +82,26 @@ public class AlchIndicatorOverlay extends Overlay {
 
     private Widget findWidget()
     {
-        // todo rewrite these notes, but they are good to know.
-        // using widget inspector find the name of the widget and search for the map in:
-        // runelite\runelite-api\src\main\java\net\runelite\api\gameval\InterfaceID.java
-        // list all possible interface ID depending on user's display mode
-        // check if the widget id exists with runelite atm
-        // return the hit, else return null
-
-        // possible anchors to attach the overlay to
+        // List of possible UI anchor widgets corresponding to the different
+        //  game client layout configurations a player may be using.
+        // Each entry represents the inventory, or "side panel", widget
+        //  for a specific layout mode.
         int[] possibleAnchors =
         {
-            // array of widgets that are assigned to an int InterfaceID
-            InterfaceID.ToplevelOsrsStretch.SIDE_CONTAINER, 	// Resizable - Classic layout
-            InterfaceID.ToplevelPreEoc.SIDE_BACKGROUND,			// Resizable - Modern layout
-            InterfaceID.Toplevel.SIDE_PANELS					// Fixed - Classic layout
+            InterfaceID.ToplevelOsrsStretch.SIDE_CONTAINER, // Resizable - Classic layout
+            InterfaceID.ToplevelPreEoc.SIDE_BACKGROUND,	    // Resizable - Modern layout
+            InterfaceID.Toplevel.SIDE_PANELS                // Fixed - Classic layout
         };
 
+        // Iterate through known layout anchors and return the first
+        //  widget that is present and visible, which indicates the
+        //  player's active layout.
         Widget foundAnchor = null;
-
         for (int widgetInterfaceID : possibleAnchors)
         {
             Widget checkWidget = client.getWidget(widgetInterfaceID);
 
-            // if the widget exists at the moment
+            // A non-null, visible widget indicates the active layout.
             if (checkWidget != null && !checkWidget.isHidden())
             {
                 foundAnchor = checkWidget;
@@ -90,5 +110,32 @@ public class AlchIndicatorOverlay extends Overlay {
         }
 
         return foundAnchor;
+    }
+
+    private void renderIndicator(Color indicatorColor, Graphics2D graphics)
+    {
+        // Locate the inventory UI widget based on the players game client layout
+        //  (i.e., fixed or resizeable).
+        Widget anchorWidget = findWidget();
+
+        if (anchorWidget != null)
+        {
+            // The x and y coordinates reference the top left of the widget.
+            int xCord = anchorWidget.getCanvasLocation().getX();
+            int yCord = anchorWidget.getCanvasLocation().getY();
+
+            // Use the widget's dimensions so the indicator fully overlays it.
+            int widgetHeight = anchorWidget.getHeight();
+            int widgetWidth = anchorWidget.getWidth();
+
+            graphics.setColor(indicatorColor);
+            graphics.fillRect(xCord, yCord, widgetWidth, widgetHeight);
+            graphics.drawRect(xCord, yCord, widgetWidth, widgetHeight);
+        }
+    }
+
+    public void setHasGameTicked(boolean hasGameTicked)
+    {
+        this.hasGameTicked = hasGameTicked;
     }
 }

@@ -22,14 +22,11 @@ public interface AlchIndicatorConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "Interval",
+			keyName = "interval",
 			name = "Interval",
 			description = "This setting customizes how often the Alch Indicator will flash when an alch spell is chosen."
 	)
-	default double flashingIndicatorInterval()
-	{
-		return 1;
-	}
+	default int flashingIndicatorInterval() { return 1; }
 
 	@Alpha
 	@ConfigItem(
@@ -39,7 +36,7 @@ public interface AlchIndicatorConfig extends Config
 	)
 	default Color indicatorColor()
 	{
-		return new Color(75, 0, 255, 25);
+		return new Color(75, 0, 255, 50);
 	}
 
 	@ConfigItem(
