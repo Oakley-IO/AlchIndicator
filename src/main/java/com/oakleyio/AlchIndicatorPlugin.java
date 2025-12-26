@@ -6,42 +6,84 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
+
 
 @Slf4j
 @PluginDescriptor(
-	name = "Example"
+	name = "Alch Indicator"
 )
 public class AlchIndicatorPlugin extends Plugin
 {
 	@Inject
+	private AlchIndicatorConfig alchIndicatorConfig;
+
+	@Inject
+	private AlchIndicatorOverlay alchIndicatorOverlay;
+
+	@Inject
 	private Client client;
 
 	@Inject
-	private AlchIndicatorConfig config;
+	private OverlayManager overlayManager;
+
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.debug("AlchIndicator started!");
+		return;
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.debug("AlchIndicator stopped!");
+		overlayManager.remove(alchIndicatorOverlay);
+
+		return;
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	private void onGameTick(GameTick gameTick)
 	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
+		// This plugin has an overlay configuration where the indicator will
+		//	flash when an alch spell is active. We track when to flash using
+		//	game ticks.
+		alchIndicatorOverlay.setHasGameTicked(true);
+	}
+
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked menuOptionClicked)
+	{
+		log.debug("Menu Entry: {}", menuOptionClicked.getMenuEntry());
+		String option = menuOptionClicked.getMenuEntry().getOption();
+		String target = menuOptionClicked.getMenuEntry().getTarget();
+
+		// The player selected one of the alchemy spells to cast.
+		if (
+				option.equals("Cast") && (target.contains("High Level Alchemy") || target.contains("Low Level Alchemy"))
+		) {
+			if (target.contains("->"))
+			{
+				log.info("Alchemy spell casted.");
+				overlayManager.remove(alchIndicatorOverlay);
+			}
+			else
+			{
+				log.info("Alchemy spell selected!");
+				overlayManager.add(alchIndicatorOverlay);
+			}
+		}
+		// The player canceled the spell.
+		else if (option.equals("Cancel") && target.isEmpty())
 		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
+			log.info("Alchemy spell canceled.");
+			overlayManager.remove(alchIndicatorOverlay);
 		}
 	}
 
