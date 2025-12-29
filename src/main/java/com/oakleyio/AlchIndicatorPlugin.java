@@ -28,6 +28,9 @@ public class AlchIndicatorPlugin extends Plugin
 	private AlchIndicatorOverlay alchIndicatorOverlay;
 
 	@Inject
+	private TooltipOverlay tooltipOverlay;
+
+	@Inject
 	private Client client;
 
 	@Inject
@@ -37,6 +40,8 @@ public class AlchIndicatorPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		overlayManager.add(tooltipOverlay);
+
 		return;
 	}
 
@@ -44,6 +49,7 @@ public class AlchIndicatorPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		overlayManager.remove(alchIndicatorOverlay);
+		overlayManager.remove(tooltipOverlay);
 
 		return;
 	}
