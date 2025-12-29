@@ -38,26 +38,36 @@ public class TooltipOverlay extends Overlay
     @Override
     public Dimension render(Graphics2D graphics)
     {
+        // Exit early if tooltips are disabled in the plugin configuration.
         if (alchIndicatorConfig.tooltip() == false)
         {
             return null;
         }
 
-        final MenuEntry[] menu = client.getMenuEntries();
-        final int menuSize = menu.length;
-        final MenuEntry entry = menu[menuSize - 1];
+        // Retrieve the current menu entry that represents the action the
+        //  player is currently hovering over.
+        MenuEntry[] menu = client.getMenuEntries();
+        int menuSize = menu.length;
+        MenuEntry entry = menu[menuSize - 1];
 
+        // Extract the option (action) and target (spell -> item) from the menu
+        //  entry.
         String option = entry.getOption();
         String target = entry.getTarget();
 
+        // Only show a tooltip when the player has an alchemy spell selected and
+        //  is hovering over an item that can be cast on.
         if (
                 option.equals("Cast") && (target.contains("High Level Alchemy") || target.contains("Low Level Alchemy"))
         )
         {
+            // The presence of "->" indicates the spell is being targeted at an item.
             if (target.contains("->"))
             {
+                // Look up the item's High Alchemy value and display it as a tooltip.
                 int itemId = entry.getItemId();
-                String tooltipText = "HA: " + itemManager.getItemComposition(itemId).getHaPrice();
+                int haPrice = itemManager.getItemComposition(itemId).getHaPrice();
+                String tooltipText = "HA: " + haPrice;
                 tooltipManager.add(new Tooltip(tooltipText));
             }
         }
